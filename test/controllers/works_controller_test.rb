@@ -2,8 +2,13 @@ require "test_helper"
 
 describe WorksController do
   let(:existing_work) { works(:album) }
+  describe "logged in users" do
+    before do
+      user = users(:kari)
+      perform_login(user)
+    end
 
-  describe "root" do
+    describe "root" do
     it "succeeds with all media types" do
       get root_path
 
@@ -15,7 +20,6 @@ describe WorksController do
       only_book.destroy
 
       get root_path
-
       must_respond_with :success
     end
 
@@ -25,7 +29,6 @@ describe WorksController do
       end
 
       get root_path
-
       must_respond_with :success
     end
   end
@@ -36,7 +39,6 @@ describe WorksController do
   describe "index" do
     it "succeeds when there are works" do
       get works_path
-
       must_respond_with :success
     end
 
@@ -46,7 +48,6 @@ describe WorksController do
       end
 
       get works_path
-
       must_respond_with :success
     end
   end
@@ -188,20 +189,84 @@ describe WorksController do
   end
 
   describe "upvote" do
+    let(:existing_work) { works(:album) }
+
     it "redirects to the work page if no user is logged in" do
-      skip
+      expect {
+        post upvote_path(existing_work.id)
+      }.wont_change "Vote.count"
+
+      must_redirect_to work_path(existing_work.id)
+      expect(flash[:result_text]).must_equal "Could not upvote"
     end
 
     it "redirects to the work page after the user has logged out" do
-      skip
+      user = users(:kari)
+      perform_login(user)
+      session[:user_id].must_equal user.id
+
+      delete logout_path
+      session[:user_id].must_be_nil
+
+      expect {
+        post upvote_path(existing_work.id)
+      }.wont_change "Vote.count"
+
+      must_redirect_to work_path(existing_work.id)
+      expect(flash[:result_text]).must_equal "You must log in to do that"
     end
 
     it "succeeds for a logged-in user and a fresh user-vote pair" do
-      skip
+      Vote.delete_all
+      user = users(:kari)
+      perform_login(user)
+      session[:user_id].must_equal user.id
+
+      expect {
+        post upvote_path(existing_work.id)
+      }.must_change "Vote.count", 1
+
+      expect(flash[:result_text]).must_equal "Successfully upvoted!"
+      must_redirect_to work_path(existing_work.id)
     end
 
     it "redirects to the work page if the user has already voted for that work" do
-      skip
+      user = users(:kari)
+      perform_login(user)
+      session[:user_id].must_equal user.id
+
+      vote = Vote.new(user: user, work: existing_work)
+      vote.save
+
+      expect {
+        post upvote_path(existing_work.id)
+      }.wont_change "Vote.count"
+
+      expect(flash[:result_text]).must_equal "Could not upvote"
+      must_redirect_to work_path(existing_work.id)
+    end
+  end
+  end
+
+  describe "guest users" do
+    let(:existing_work) { works(:album) }
+
+    describe "index" do
+      it "cannot view index page" do
+        get works_path
+
+        must_redirect_to root_path
+        expect(flash[:error]).must_equal "You must be logged in to proceed."
+      end
+    end
+
+    describe "show" do
+      it "cannot view a specific media on show page" do
+        get works_path(existing_work.id)
+
+        must_redirect_to root_path
+        expect(flash[:error]).must_equal "You must be logged in to proceed."
+      end
     end
   end
 end

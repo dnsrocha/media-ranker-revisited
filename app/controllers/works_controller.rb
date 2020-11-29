@@ -11,11 +11,24 @@ class WorksController < ApplicationController
   end
 
   def index
-    @works_by_category = Work.to_category_hash
+    if @login_user
+      @works_by_category = Work.to_category_hash
+      return
+    else
+      flash[:error] = "You must be logged in to proceed."
+      redirect_to root_path
+      return
+    end
   end
 
   def new
-    @work = Work.new
+    if @login_user
+      @work = Work.new
+      return
+    else
+      flash[:error] = "A guest cannot create a work."
+      redirect_to root_path
+    end
   end
 
   def create
@@ -34,10 +47,21 @@ class WorksController < ApplicationController
   end
 
   def show
-    @votes = @work.votes.order(created_at: :desc)
+    if @login_user
+      @votes = @work.votes.order(created_at: :desc)
+      return
+    else
+      flash[:error] = "You must be logged in to proceed."
+      redirect_to root_path
+      return
+    end
   end
 
   def edit
+    if !@login_user
+      flash[:error] = "A guest cannot edit a work."
+      redirect_to root_path
+    end
   end
 
   def update
@@ -54,10 +78,14 @@ class WorksController < ApplicationController
   end
 
   def destroy
-    @work.destroy
-    flash[:status] = :success
-    flash[:result_text] = "Successfully destroyed #{@media_category.singularize} #{@work.id}"
-    redirect_to root_path
+    if @login_user
+      @work.destroy
+      flash[:status] = :success
+      flash[:result_text] = "Successfully destroyed #{@media_category.singularize} #{@work.id}"
+      redirect_to root_path
+    else
+      flash[:result_text] = "Could not destroy #{@media_category.singularize} #{@work.id}"
+    end
   end
 
   def upvote
