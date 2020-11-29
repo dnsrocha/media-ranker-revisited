@@ -4,7 +4,6 @@ describe UsersController do
   # Tests written for Oauth.
   describe "auth_callback" do
     it "logs in an existing user and redirects to the root path" do
-      it "logs in an existing user and redirects to root path" do
         start_count = User.count
         user = users(:kari)
         perform_login(user)
@@ -71,6 +70,5 @@ describe UsersController do
     end
   end
 
-  end
-  end
+end
 
