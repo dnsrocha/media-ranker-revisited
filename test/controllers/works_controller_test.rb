@@ -256,7 +256,7 @@ describe WorksController do
         get works_path
 
         must_redirect_to root_path
-        expect(flash[:error]).must_equal "You must be logged in to proceed."
+        expect(flash[:result_text]).must_equal "You must be logged in to proceed."
       end
     end
 
@@ -265,7 +265,7 @@ describe WorksController do
         get works_path(existing_work.id)
 
         must_redirect_to root_path
-        expect(flash[:error]).must_equal "You must be logged in to proceed."
+        expect(flash[:result_text]).must_equal "You must be logged in to proceed."
       end
     end
   end

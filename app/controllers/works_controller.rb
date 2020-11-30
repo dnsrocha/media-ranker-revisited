@@ -15,7 +15,8 @@ class WorksController < ApplicationController
       @works_by_category = Work.to_category_hash
       return
     else
-      flash[:error] = "You must be logged in to proceed."
+      flash[:status] = :error
+      flash[:result_text] = "You must be logged in to proceed."
       redirect_to root_path
       return
     end
@@ -26,7 +27,8 @@ class WorksController < ApplicationController
       @work = Work.new
       return
     else
-      flash[:error] = "A guest cannot create a work."
+      flash[:status] = :error
+      flash[:result_text] = "You must be logged in to create a work."
       redirect_to root_path
     end
   end
@@ -51,7 +53,8 @@ class WorksController < ApplicationController
       @votes = @work.votes.order(created_at: :desc)
       return
     else
-      flash[:error] = "You must be logged in to proceed."
+      flash[:status] = :error
+      flash[:result_text] = "You must be logged in to proceed."
       redirect_to root_path
       return
     end
@@ -59,7 +62,8 @@ class WorksController < ApplicationController
 
   def edit
     if !@login_user
-      flash[:error] = "A guest cannot edit a work."
+      flash[:status] = :error
+      flash[:result_text] = "You must be logged in to edit a work."
       redirect_to root_path
     end
   end
